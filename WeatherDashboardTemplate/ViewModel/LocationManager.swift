@@ -44,6 +44,7 @@ final class LocationManager {
 
     func findPOIs(lat: Double, lon: Double, limit: Int = 5) async throws -> [AnnotationModel] {
         // Uses `MKLocalSearch` to find Points of Interest (POIs), specifically "Tourist Attractions," within a small region around the given latitude and longitude.
+        
         // Executes the search request.
         // Maps the `MKMapItem` results into an array of `AnnotationModel`s, filtering out any without a name.
         // Limits the final array size to the specified `limit`.
@@ -51,4 +52,4 @@ final class LocationManager {
         // DUMMY RETURN TO SATISFY COMPILER
         preconditionFailure("Stubbed function not implemented. Requires a [AnnotationModel] return.")
     }
-}
+
