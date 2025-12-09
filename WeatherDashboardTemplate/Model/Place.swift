@@ -15,7 +15,8 @@ final class Place {
     var name: String
     var latitude: Double
     var longitude: Double
-    var lastUsedAt: Date 
+    var lastUsedAt: Date
+   
 
     init(
         id: UUID = UUID(),
@@ -28,6 +29,7 @@ final class Place {
         self.latitude = latitude
         self.longitude = longitude
         self.lastUsedAt = .now
+       
     }
 }
 

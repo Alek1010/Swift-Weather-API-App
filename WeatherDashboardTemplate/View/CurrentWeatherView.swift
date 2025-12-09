@@ -13,15 +13,12 @@ struct CurrentWeatherView: View {
     @EnvironmentObject var vm: MainAppViewModel
 
     var body: some View {
-        VStack{
-            Text("Image shows the information to be presented in this view")
-            Spacer()
-            Image("now")
-                .resizable()
-
-            Spacer()
+        HStack{
+            
+            Text(vm.activePlaceName)
         }
-        .frame(height: 600)
+        
+        
     }
 }
 

@@ -20,14 +20,11 @@ struct WeatherResponseNew: Identifiable {
     let condition: String          // e.g., “Clouds”
     let description: String        // e.g., “broken clouds”
     let icon: String               // SF Symbol name
-    
     let humidity: Int
     let windSpeed: Double
     let pressure: Int
-    
     let sunrise: Int               // UNIX timestamp
     let sunset: Int               // UNIX timestamp
-    
     let date: Date
 }
 
@@ -35,7 +32,6 @@ struct WeatherResponseNew: Identifiable {
 /// Lightweight model for your forecast tab and charts.
 struct ForecastDay: Identifiable {
     let id = UUID()
-    
     let date: Date
     let minTemp: Double
     let maxTemp: Double
