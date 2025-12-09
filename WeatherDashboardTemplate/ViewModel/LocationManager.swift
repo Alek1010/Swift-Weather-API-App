@@ -43,6 +43,40 @@ final class LocationManager {
     }
 
     func findPOIs(lat: Double, lon: Double, limit: Int = 5) async throws -> [AnnotationModel] {
+        
+        let center = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            
+            let region = MKCoordinateRegion(
+                center: center,
+                span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+            )
+            
+            let request = MKLocalSearch.Request()
+            request.region = region
+            request.naturalLanguageQuery = "Tourist Attractions"
+            
+            let search = MKLocalSearch(request: request)
+            
+            let response: MKLocalSearch.Response
+            do {
+                response = try await search.start()
+            } catch {
+                throw WeatherMapError.networkError(error)
+            }
+            
+            let mapItems = response.mapItems.prefix(limit)
+            
+            let annotations: [AnnotationModel] = mapItems.compactMap { item in
+                guard let name = item.name else { return nil }
+                
+                return AnnotationModel(
+                    name: name,
+                    latitude: item.placemark.coordinate.latitude,
+                    longitude: item.placemark.coordinate.longitude
+                )
+            }
+            
+            return annotations
         // Uses `MKLocalSearch` to find Points of Interest (POIs), specifically "Tourist Attractions," within a small region around the given latitude and longitude.
         
         // Executes the search request.
@@ -50,6 +84,6 @@ final class LocationManager {
         // Limits the final array size to the specified `limit`.
 
         // DUMMY RETURN TO SATISFY COMPILER
-        preconditionFailure("Stubbed function not implemented. Requires a [AnnotationModel] return.")
+       
     }
 
