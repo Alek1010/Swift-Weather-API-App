@@ -11,16 +11,68 @@ import SwiftData
 
 struct CurrentWeatherView: View {
     @EnvironmentObject var vm: MainAppViewModel
-
+    
     var body: some View {
-        HStack{
-            
-            Text(vm.activePlaceName)
-        }
         
+        VStack(spacing: 20) {
+
+                    Text(vm.activePlaceName)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    if vm.isLoading {
+                        ProgressView("Loading Weather...")
+                    }
+
+                    else if let weather = vm.currentWeather {
+
+                        VStack(spacing: 16) {
+
+                            // SF Symbol icon (you can refine later)
+                            Image(systemName: WeatherIconMapper.iconName(for: weather.weather.first?.main ?? ""))
+                                .font(.system(size: 80))
+
+                            Text("\(Int(weather.temp))°C")
+                                .font(.system(size: 60))
+                                .fontWeight(.bold)
+
+                            Text(weather.weather.first?.description.capitalized ?? "")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+
+                            Divider()
+
+                            HStack(spacing: 40) {
+                                VStack {
+                                    Image(systemName: "thermometer")
+                                    Text("Feels Like")
+                                    Text("\(Int(weather.feelsLike))°C")
+                                }
+                                VStack {
+                                    Image(systemName: "drop.fill")
+                                    Text("Humidity")
+                                    Text("\(weather.humidity)%")
+                                }
+                                VStack {
+                                    Image(systemName: "wind")
+                                    Text("Wind")
+                                    Text("\(weather.windSpeed, specifier: "%.1f") m/s")
+                                }
+                            }
+                            .font(.subheadline)
+                        }
+                        .padding()
+                        .background(.thinMaterial)
+                        .cornerRadius(20)
+                    }
+
+                    Spacer()
+                }
+                .padding()
+            }
         
     }
-}
+   
 
 #Preview {
     let vm = MainAppViewModel(context: ModelContext(ModelContainer.preview))

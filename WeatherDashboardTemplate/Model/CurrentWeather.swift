@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - Current Weather Model
 /// A flattened, efficient structure representing the current weather.
 /// This earns marks for clean, lean JSON mapping and is tailored for your UI.
-struct WeatherResponseNew: Identifiable {
+struct CurrentWeather: Identifiable {
     let id = UUID()
     
     let temperature: Double
