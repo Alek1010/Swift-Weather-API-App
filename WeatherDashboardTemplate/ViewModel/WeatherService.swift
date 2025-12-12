@@ -9,9 +9,17 @@ import Foundation
 @MainActor
 final class WeatherService {
     private let apiKey = "fa86034853815776dce00554e4b30aa2"
-
+    //private let dailyLimit = 50 // Set your daily API call limit
+    var counting = 0
     func fetchWeather(lat: Double, lon: Double) async throws -> WeatherResponse {
-        guard var components = URLComponents(string: "https://api.openweathermap.org/data/3.0/onecall") else {
+        counting += 1
+        print("Calling fetchWeather \(counting)")
+        
+        
+        //Check daily API limit
+        //try checkDailyLimit()
+        
+        guard var components = URLComponents(string: "https://api.openweathermap.org/data/3.0/onecall") else            {
             throw WeatherMapError.invalidURL("failed to build component")
         }
         
@@ -45,6 +53,8 @@ final class WeatherService {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .secondsSince1970
             let weatherResponse = try decoder.decode(WeatherResponse.self, from: data)
+            //incrementAPICount()
+            
             return weatherResponse
         } catch {
             throw WeatherMapError.decodingError(error)
@@ -58,4 +68,34 @@ final class WeatherService {
         // DUMMY RETURN TO SATISFY COMPILER - you will have your own when the coding is done
         
     }
+    
+//    private func checkDailyLimit() throws {
+//        print("im checking the daily limit")
+//        let today = Calendar.current.startOfDay(for: Date())
+//        let lastReset = UserDefaults.standard.object(forKey: "api_call_reset") as? Date ?? .distantPast
+//        
+//        if today > lastReset {
+//            print("today is higher than last rest")
+//            print(dailyLimit)
+//            // New day → reset counter
+//            UserDefaults.standard.set(0, forKey: "api_call_count")
+//            UserDefaults.standard.set(today, forKey: "api_call_reset")
+//        }
+//        
+//        let current = getAPICallCount()
+//        if current >= dailyLimit {
+//            throw WeatherMapError.limitExceeded("Daily API limit reached (\(dailyLimit) calls)")
+//        }
+//        print(current,dailyLimit)
+//    }
+//    
+//    private func incrementAPICount() {
+//        let current = getAPICallCount()
+//        UserDefaults.standard.set(current + 1, forKey: "api_call_count")
+//    }
+//    
+//    private func getAPICallCount() -> Int {
+//        return UserDefaults.standard.integer(forKey: "api_call_count")
+//    }
+    
 }

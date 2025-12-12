@@ -22,6 +22,8 @@ final class MainAppViewModel: ObservableObject {
     @Published var activePlaceName: String = ""
     private let defaultPlaceName = "London"
     @Published var selectedTab: Int = 0
+    /// Simple weather cache timestamp
+    private var lastWeatherFetch: Date?
 
     /// Create and use a WeatherService model (class) to manage fetching and decoding weather data
     private let weatherService = WeatherService()
@@ -33,52 +35,37 @@ final class MainAppViewModel: ObservableObject {
     private let context: ModelContext
 
     init(context: ModelContext) {
-        // Initialize the ModelContext and attempt to fetch previously visited places from SwiftData, sorted by most recent use.
-        // If no visited places exist (first launch), load the default location.
-        // Otherwise, load the most recently used place.
         self.context = context
-
-        // Corrected FetchDescriptor to include sorting by 'lastUsedAt' in reverse order.
+        
         if let results = try? context.fetch(
             FetchDescriptor<Place>(sortBy: [SortDescriptor(\Place.lastUsedAt, order: .reverse)])
         ) {
             self.visited = results
         }
-        do{
-            try context.delete(model: Place.self)
-            visited.removeAll()
-           
-        }catch{
-            
-        }
         
-        // First launch: no data → perform full London setup
-        if visited.isEmpty {
-            Task {
-                await loadDefaultLocation()
-            }
-        } else if let mostRecent = visited.first {
-            // Otherwise, load most recently used place
-            Task {
-                await loadLocation(fromPlace: mostRecent)
-            }
+        Task { await loadInitial() }
+    }
+    
+    // MARK: - Startup Loader
+    private func loadInitial() async {
+        print("im doing intial load  ")
+        if let saved = visited.first {
+            await loadFromPlaceWithoutAPI(saved)
+        } else {
+            try? await loadLocation(fromName: defaultPlaceName)
         }
     }
 
     func submitQuery() {
         let city = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !city.isEmpty else {
-            appError = .missingData(message: "Please enter a valid location.")
+            appError = .missingData(message: "Enter a valid location")
             return
         }
+        
         Task {
-            do {
-                // MARK: call loadLocation(byName:)
-                try await loadLocation(byName: city)
-                query = ""
-            } catch {
-                appError = .networkError(error)
-            }
+            try? await loadLocation(fromName: city)
+            query = ""
         }
     }
     
@@ -86,7 +73,7 @@ final class MainAppViewModel: ObservableObject {
     
     
     func loadDefaultLocation() async {
-        try? await loadLocation(byName : defaultPlaceName)
+        try? await loadLocation(fromName : defaultPlaceName)
 //        do {
 //            try await loadLocation(byName: defaultPlaceName)
 //        } catch {
@@ -96,13 +83,13 @@ final class MainAppViewModel: ObservableObject {
         // Attempts to select and load the hardcoded default location name.
         // If an error occurs during selection, sets an app error.
     }
-
-    func search() async throws {
-        if !query.isEmpty {
-                    try await loadLocation(byName: query)
-                }
-        // If the query is not empty, calls `select(placeNamed:)` with the current query string.
-    }
+//
+//    func search() async throws {
+//        if !query.isEmpty {
+//                    try await loadLocation(byName: query)
+//                }
+//        // If the query is not empty, calls `select(placeNamed:)` with the current query string.
+//    }
 
     /// Validate weather before saving a new place; create POI children once.
 //    func loadLocation(byName name: String) async throws {
@@ -159,72 +146,58 @@ final class MainAppViewModel: ObservableObject {
 //        // 7. If any step fails, logs the error and reverts to the default location with an alert.
 //    }
     
-    func loadLocation(byName name: String) async throws {
+    // MARK: - Main Loader (Search)
+    func loadLocation(fromName name: String) async throws {
         isLoading = true
-
-        // 1. Use cached place if exists
+        print("im in the loader function ")
+        // If visited before → just load cached values (NO API)
         if let existing = visited.first(where: { $0.name.lowercased() == name.lowercased() }) {
-            await loadLocation(fromPlace: existing)
+            print("found the catched places \(name)")
+            await loadFromPlaceWithoutAPI(existing)
+            isLoading = false
             return
         }
-
-        do {
-            // 2. Geocode
-            let result = try await locationManager.geocodeAddress(name)
-
-            // 3. Fetch weather data
-            let response = try await weatherService.fetchWeather(
-                lat: result.lat,
-                lon: result.lon
-            )
-
-            // 4. Assign weather + forecast
-            self.currentWeather = response.current
-            self.forecast = response.daily
-
-            // 5. Fetch POIs
-            let newPOIs = try await locationManager.findPOIs(
-                lat: result.lat,
-                lon: result.lon
-            )
-
-            // 6. Create new Place
-            let place = Place(
-                name: result.name,
-                latitude: result.lat,
-                longitude: result.lon
-            )
-
-            // Insert into visited list
-            visited.insert(place, at: 0)
-
-            // 7. Update UI
-            self.pois = newPOIs
-            self.activePlaceName = result.name
-
-            // 8. Focus map
-            focus(on: CLLocationCoordinate2D(latitude: result.lat, longitude: result.lon))
-
-        } catch {
-            await revertToDefaultWithAlert(message: "Could not load \(name).")
-        }
-
+        
+        // 1. Geocode once
+        let result = try await locationManager.geocodeAddress(name)
+        
+        // 2. Weather API call once
+        let response = try await weatherService.fetchWeather(lat: result.lat, lon: result.lon)
+        self.currentWeather = response.current
+        self.forecast = response.daily
+        
+        // 3. POIs once
+        let poiList = try await locationManager.findPOIs(lat: result.lat, lon: result.lon)
+        self.pois = poiList
+        
+        // 4. Save place (cached forever)
+        let place = Place(name: result.name, latitude: result.lat, longitude: result.lon)
+        visited.insert(place, at: 0)
+        
+        activePlaceName = result.name
+        focus(on: .init(latitude: result.lat, longitude: result.lon))
+        
         isLoading = false
     }
     
     func loadLocation(fromPlace place: Place) async {
-        isLoading = true
-        activePlaceName = place.name
+            isLoading = true
+            activePlaceName = place.name
 
-        do {
-            try await loadAll(for: place)
-        } catch {
-            appError = .networkError(error)
+            do { try await loadAll(for: place) }
+            catch { appError = .networkError(error) }
+
+            isLoading = false
         }
+    
+    private func loadFromPlaceWithoutAPI(_ place: Place) async {
+            activePlaceName = place.name
+        print("im in the loading places without an api ")
+            // Use cached values
+            pois = pois.isEmpty ? [] : pois
 
-        isLoading = false
-    }
-
+            focus(on: .init(latitude: place.latitude, longitude: place.longitude))
+        }
 
     
 
@@ -258,41 +231,47 @@ final class MainAppViewModel: ObservableObject {
         // Animates the map region to center on the given coordinate with a specified zoom level (span).
     }
 
+    // MARK: - Cached Weather Loader
     private func loadAll(for place: Place) async throws {
-        // fetch weather again
+        print("im loading all ")
+        // Only fetch weather if older than 15 minutes
+        if let lastFetch = lastWeatherFetch,
+           Date().timeIntervalSince(lastFetch) < 1800,
+           currentWeather != nil {
+            print("Using cached weather.")
+        } else {
             let response = try await weatherService.fetchWeather(
-                lat: place.latitude,
-                lon: place.longitude
+                lat: place.latitude, lon: place.longitude
             )
-
-            // update weather + forecast
             self.currentWeather = response.current
             self.forecast = response.daily
+            lastWeatherFetch = Date()
+        }
 
-            // update POIs (use cache or fetch new ones)
-            if pois.isEmpty {
-                let newPOIs = try await locationManager.findPOIs(
-                    lat: place.latitude,
-                    lon: place.longitude
-                )
-                self.pois = newPOIs
-            }
+        // POIs
+        if pois.isEmpty {
+            let newPOIs = try await locationManager.findPOIs(
+                lat: place.latitude, lon: place.longitude
+            )
+            self.pois = newPOIs
+        }
 
-            // move place to top of visited list
-            visited.removeAll { $0.id == place.id }
-            visited.insert(place, at: 0)
+        // Move place to top
+        visited.removeAll { $0.id == place.id }
+        visited.insert(place, at: 0)
 
-            // update map region
-            focus(on: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude))
-        // Sets `activePlaceName` and prints a loading message.
+        focus(on: CLLocationCoordinate2D(
+            latitude: place.latitude,
+            longitude: place.longitude
+        ))
+    }        // Sets `activePlaceName` and prints a loading message.
         // Always refreshes weather data from the API.
         // Checks if the `Place` object has existing annotations (POIs).
         // If annotations are empty, fetches new POIs via `MKLocalSearch`, converts them to `AnnotationModel`s, adds them to the `Place`, saves the context, and sets `self.pois`.
         // If annotations exist, uses the cached list for `self.pois`.
         // Calls `focus(on:zoom:)` to update the map view.
         // Ensures the place is at the top of the `visited` list (if not already).
-    }
-
+    
     func delete(place: Place) {
         context.delete(place)
         visited.removeAll { $0.id == place.id }
@@ -300,5 +279,11 @@ final class MainAppViewModel: ObservableObject {
         // Deletes the given `Place` object from the ModelContext and removes it from the `visited` array.
         // Attempts to save the context.
     }
+    
+   
+    
+    }
 
-}
+    
+
+

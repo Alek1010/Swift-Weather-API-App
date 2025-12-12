@@ -11,6 +11,7 @@ enum WeatherMapError: Error, LocalizedError, Identifiable {
     case decodingError(Error)
     case geocodingFailed(String)
     case invalidResponse(statusCode: Int)
+    case limitExceeded(String)
     case missingData(message: String)
     var id: String { localizedDescription }
 
@@ -20,6 +21,8 @@ enum WeatherMapError: Error, LocalizedError, Identifiable {
             return "Configuration Error: The URL is invalid or malformed: \(urlString)"
         case .networkError(let error):
             return "A network connection error occurred: \(error.localizedDescription)"
+        case .limitExceeded(let msg):
+            return msg
         case .decodingError(let error):
             return "Failed to parse data from the server: \(error.localizedDescription)"
         case .geocodingFailed(let location):
