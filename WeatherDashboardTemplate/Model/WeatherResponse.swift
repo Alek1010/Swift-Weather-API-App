@@ -61,7 +61,9 @@ struct Weather: Codable {
 }
 
 // MARK: - Daily
-struct Daily: Codable {
+struct Daily: Codable, Identifiable {
+    /// SwiftUI identifier
+    var id: Int { dt }
     let dt, sunrise, sunset, moonrise: Int
     let moonset: Int
     let moonPhase: Double
