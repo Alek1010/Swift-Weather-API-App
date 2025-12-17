@@ -73,6 +73,7 @@ final class MainAppViewModel: ObservableObject {
     
     
     func loadDefaultLocation() async {
+        print("loading london")
         try? await loadLocation(fromName : defaultPlaceName)
 //        do {
 //            try await loadLocation(byName: defaultPlaceName)
@@ -272,11 +273,11 @@ final class MainAppViewModel: ObservableObject {
             lat: place.latitude,
             lon: place.longitude
         )
-        
+
         self.currentWeather = response.current
         self.forecast = response.daily
         lastWeatherFetch = Date()
-        
+
         // POIs
         if pois.isEmpty {
             self.pois = try await locationManager.findPOIs(
@@ -284,10 +285,10 @@ final class MainAppViewModel: ObservableObject {
                 lon: place.longitude
             )
         }
-        
+
         visited.removeAll { $0.id == place.id }
         visited.insert(place, at: 0)
-        
+
         focus(on: CLLocationCoordinate2D(
             latitude: place.latitude,
             longitude: place.longitude
