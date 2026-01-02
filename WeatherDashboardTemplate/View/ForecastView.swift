@@ -11,29 +11,17 @@ import SwiftData
 
 
 import SwiftUI
-import Charts   // Include if you plan to show a chart later
+import Charts
 
 
-
-// MARK: - Temperature Data Model
-/// A single temperature reading for the chart or list.
-private struct TempData: Identifiable {
-    let id = UUID()
-    let time: Date          // e.g., forecast date
-    let type: String        // e.g., "High" or "Low"
-    let value: Double       // numeric value
-}
-
-// MARK: - Forecast View
-/// Stubbed Forecast View that includes an image placeholder to show
-/// what the final view will look like. Replace the image once real data and charts are added.
 struct ForecastView: View {
+    //shared app state
     @EnvironmentObject var vm: MainAppViewModel
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 
-                // MARK: - Header
+                //header shows rhe forcast title and active location
                 VStack(alignment: .leading, spacing: 4) {
                     Text("8 Day Forecast – \(vm.activePlaceName)")
                         .font(.title2)
@@ -45,18 +33,18 @@ struct ForecastView: View {
                 }
                 .padding(.horizontal)
                 
-                // MARK: - Bar Chart
+                // temp bar chart Display bars for daily high and low temperatures
                 Chart {
                     ForEach(vm.forecast) { day in
                         let date = Date(timeIntervalSince1970: TimeInterval(day.dt))
-                        
+                        // high temp bar
                         BarMark(
                             x: .value("Day", date, unit: .day),
                             y: .value("Temperature", day.temp.max)
                         )
                         .foregroundStyle(.orange)
                         .position(by: .value("Type", "High"))
-                        
+                        // low temp bar
                         BarMark(
                             x: .value("Day", date, unit: .day),
                             y: .value("Temperature", day.temp.min)
@@ -75,7 +63,7 @@ struct ForecastView: View {
                 .padding(.horizontal)
                 
                 
-                // MARK: - Detailed Summary
+                // detailed summery text forcast detail for every day
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Detailed Daily Summary")
                         .font(.headline)
@@ -90,52 +78,20 @@ struct ForecastView: View {
         }
         .navigationTitle("Forecast")
         
-        //        VStack {
-        //            // MARK: - Header Text
-        //            Text("Image shows the information to be presented in this view")
-        //                .font(.headline)
-        //                .multilineTextAlignment(.center)
-        //                .padding(.top)
-        //
-        //            Spacer()
-        //
-        //            // MARK: - Placeholder Image
-        //            // Replace "forecast" with the name of your image asset.
-        //            // You can add your actual design or a wireframe image in Assets.xcassets.
-        //            Image("forecast")
-        //                .resizable()
-        //                .scaledToFit()
-        //                .frame(maxWidth: .infinity)
-        //                .cornerRadius(12)
-        //                .shadow(radius: 5)
-        //                .padding()
-        //
-        //            Spacer()
-        //        }
-        //        .frame(height: 600)
-        //        .background(
-        //            LinearGradient(
-        //                gradient: Gradient(colors: [.indigo.opacity(0.1), .blue.opacity(0.05)]),
-        //                startPoint: .topLeading,
-        //                endPoint: .bottomTrailing
-        //            )
-        //        )
-        //        .clipShape(RoundedRectangle(cornerRadius: 20))
-        //        .padding()
-        //        .navigationTitle("Forecast")
     }
     
-    // MARK: - Daily Row
+    // daily forcast forcast detail for a single day
     private func dailyRow(_ day: Daily) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             
             Text(
+                //date formated with weekday
                 DateFormatterUtils.formattedDateWithWeekdayAndDay(
                     from: TimeInterval(day.dt)
                 )
             )
             .font(.headline)
-            
+            //weather descibed e.g light rain
             Text(day.weather.first?.description.capitalized ?? "")
                 .font(.subheadline)
                 .foregroundColor(.secondary)

@@ -11,24 +11,23 @@ import MapKit
 
 struct MapView: View {
     @EnvironmentObject var vm: MainAppViewModel
-
-    // MARK:  add other necessary variables
     
     var body: some View {
            VStack(spacing: 0) {
-
-               // MARK: - MAP (Top Section)
+                
+               //interactive map shows the pins for the top tourist attractions
                Map(
                    coordinateRegion: $vm.mapRegion,
                    annotationItems: vm.pois
                ) { poi in
+                   // map pin
                    MapAnnotation(
                        coordinate: CLLocationCoordinate2D(
                            latitude: poi.latitude,
                            longitude: poi.longitude
                        )
                    ) {
-                       // Custom pin
+    
                        VStack {
                            Image(systemName: "mappin.circle.fill")
                                .font(.title)
@@ -46,10 +45,11 @@ struct MapView: View {
                                        )
                                    )
                                }
+                           //open google for long press
                                .onLongPressGesture {
                                    openGoogleSearch(for: poi.name)
                                }
-
+                           // name label for POI
                            Text(poi.name)
                                .font(.caption)
                                .fixedSize()
@@ -58,13 +58,14 @@ struct MapView: View {
                }
                .frame(height: 320)
 
-               // MARK: - POI LIST (Bottom Section)
+               // list of poi
                VStack(alignment: .leading) {
+                   //title
                    Text("Top 5 Tourist Attractions in \(vm.activePlaceName)")
                        .font(.headline)
                        .padding(.horizontal)
                        .padding(.top, 8)
-
+                   //scpollable list of pois
                    ScrollView {
                        VStack(spacing: 12) {
                            ForEach(vm.pois) { poi in
@@ -113,19 +114,6 @@ struct MapView: View {
            }
        }
     
-//    var body: some View {
-//        VStack{
-//            Text("Image shows the information to be presented in this view")
-//            Spacer()
-//            Image("map")
-//                .resizable()
-//
-//
-//            Spacer()
-//        }
-//        .frame(height: 600)
-//
-//    }
 }
 #Preview {
     let vm = MainAppViewModel(context: ModelContext(ModelContainer.preview))
