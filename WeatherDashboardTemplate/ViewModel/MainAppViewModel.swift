@@ -171,13 +171,11 @@ final class MainAppViewModel: ObservableObject {
         self.forecast = response.daily
         
         
-        // fetch pois if they are not alreadt loaded
-        if pois.isEmpty {
-            self.pois = try await locationManager.findPOIs(
-                lat: place.latitude,
-                lon: place.longitude
-            )
-        }
+        // Always reload POIs for the selected place
+        self.pois = try await locationManager.findPOIs(
+            lat: place.latitude,
+            lon: place.longitude
+        )
         //put selected place at top of visted list
         visited.removeAll { $0.id == place.id }
         visited.insert(place, at: 0)

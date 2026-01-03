@@ -12,6 +12,10 @@ import MapKit
 struct MapView: View {
     @EnvironmentObject var vm: MainAppViewModel
     
+    
+    //used for open the links
+    //@Environment(\.openURL) private var openURL
+    
     var body: some View {
         VStack(spacing: 0) {
             
