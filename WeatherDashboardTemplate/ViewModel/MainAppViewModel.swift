@@ -188,19 +188,13 @@ final class MainAppViewModel: ObservableObject {
         ))
     }
     
-    // Sets `activePlaceName` and prints a loading message.
-        // Always refreshes weather data from the API.
-        // Checks if the `Place` object has existing annotations (POIs).
-        // If annotations are empty, fetches new POIs via `MKLocalSearch`, converts them to `AnnotationModel`s, adds them to the `Place`, saves the context, and sets `self.pois`.
-        // If annotations exist, uses the cached list for `self.pois`.
-        // Calls `focus(on:zoom:)` to update the map view.
-        // Ensures the place is at the top of the `visited` list (if not already).
+ 
     
     //delete place from saved places when user swipes
     func delete(place: Place) {
         context.delete(place)
         visited.removeAll { $0.id == place.id }
-        //attemp to save changes to data base 
+        //attemp to save changes to data base
         try? context.save()
         // Deletes the given `Place` object from the ModelContext and removes it from the `visited` array.
         // Attempts to save the context.

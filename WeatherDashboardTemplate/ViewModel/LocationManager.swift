@@ -48,11 +48,7 @@ final class LocationManager {
                 throw WeatherMapError.geocodingFailed("failed")
             }
         }
-    // Uses `CLGeocoder` to convert a string address into geographic coordinates.
-    // Extracts the name, latitude, and longitude from the first resulting placemark.
-    // Throws a `WeatherMapError.geocodingFailed` if no valid location can be found.
-    
-    // DUMMY RETURN TO SATISFY COMPILER
+ 
     
     
    
@@ -87,13 +83,7 @@ final class LocationManager {
                     longitude: item.placemark.coordinate.longitude
                 )
             }
-        // Uses `MKLocalSearch` to find Points of Interest (POIs), specifically "Tourist Attractions," within a small region around the given latitude and longitude.
-        
-        // Executes the search request.
-        // Maps the `MKMapItem` results into an array of `AnnotationModel`s, filtering out any without a name.
-        // Limits the final array size to the specified `limit`.
-        
-        // DUMMY RETURN TO SATISFY COMPILER
+       
         
     }
     
