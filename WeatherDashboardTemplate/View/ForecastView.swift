@@ -107,7 +107,7 @@ struct ForecastView: View {
     }
     
 }
-    
+
 
 
 #Preview {

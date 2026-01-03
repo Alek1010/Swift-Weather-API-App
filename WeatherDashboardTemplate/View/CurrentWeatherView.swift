@@ -29,7 +29,7 @@ struct CurrentWeatherView: View {
         
         VStack(spacing: 20) {
             
-        
+            
             // Displays the active place name (e.g. London, Paris)
             Text(vm.activePlaceName)
                 .font(.largeTitle)

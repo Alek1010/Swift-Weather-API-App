@@ -55,13 +55,13 @@ final class WeatherService {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .secondsSince1970
             let weatherResponse = try decoder.decode(WeatherResponse.self, from: data)
-            //succesfully decoded data is returned to caller 
+            //succesfully decoded data is returned to caller
             return weatherResponse
         } catch {
             //json structure did not match the expected model
             throw WeatherMapError.decodingError(error)
         }
-
+        
         
     }
     

@@ -52,7 +52,7 @@ struct VisitedPlacesView: View {
                                 .padding(.vertical, 6)
                             }
                         }
-                        //swipe to delete permenantly 
+                        //swipe to delete permenantly
                         .onDelete { indexSet in
                             indexSet.forEach {
                                 vm.delete(place: vm.visited[$0])

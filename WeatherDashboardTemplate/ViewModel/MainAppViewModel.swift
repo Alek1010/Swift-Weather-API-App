@@ -24,17 +24,17 @@ final class MainAppViewModel: ObservableObject {
     @Published var activePlaceName: String = "" // current active location
     private let defaultPlaceName = "London" // first launch
     @Published var selectedTab: Int = 0 // tab selection
-   
-
+    
+    
     // handle network calls to openweather API
     private let weatherService = WeatherService()
-
+    
     // handle geocoding anf POI lookup
     private let locationManager = LocationManager()
-
+    
     // Used for fetching, saving and deleting place objects
     private let context: ModelContext
-
+    
     //initisaliser runs onces app starts
     init(context: ModelContext) {
         self.context = context
@@ -57,7 +57,7 @@ final class MainAppViewModel: ObservableObject {
             try? await loadLocation(fromName: defaultPlaceName)
         }
     }
-
+    
     // search handling when user uses search bar triggers async location loading
     func submitQuery() {
         // remove accidental spaces
@@ -84,8 +84,8 @@ final class MainAppViewModel: ObservableObject {
         // Attempts to select and load the hardcoded default location name.
         // If an error occurs during selection, sets an app error.
     }
-
-
+    
+    
     
     //Main search loader loades location by name
     func loadLocation(fromName name: String) async throws {
@@ -124,25 +124,25 @@ final class MainAppViewModel: ObservableObject {
         
         isLoading = false
         
-    
+        
         
     }
     // load from saved places loaded weather and poi using the saved place if exists
     func loadLocation(fromPlace place: Place) async {
-            isLoading = true
-            // update ui with selected place name
-            activePlaceName = place.name
-
-            //load everyhting using know lat and long
-            do { try await loadAll(for: place) }
-            catch { appError = .networkError(error) }
-
-            isLoading = false
-        }
-
-
-
-// deals with serious errors like invalid city, network error
+        isLoading = true
+        // update ui with selected place name
+        activePlaceName = place.name
+        
+        //load everyhting using know lat and long
+        do { try await loadAll(for: place) }
+        catch { appError = .networkError(error) }
+        
+        isLoading = false
+    }
+    
+    
+    
+    // deals with serious errors like invalid city, network error
     private func revertToDefaultWithAlert(message: String) async {
         appError = .missingData(message: message)
         await loadDefaultLocation()
@@ -153,13 +153,13 @@ final class MainAppViewModel: ObservableObject {
     func focus(on coordinate: CLLocationCoordinate2D, zoom: Double = 0.02) {
         // create new map region centred on the cooridnats
         mapRegion = MKCoordinateRegion(
-                center: coordinate,
-                span: MKCoordinateSpan(latitudeDelta: zoom, longitudeDelta: zoom)
-            )
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: zoom, longitudeDelta: zoom)
+        )
         
     }
-
-//loads data for place using stored cooridnates
+    
+    //loads data for place using stored cooridnates
     private func loadAll(for place: Place) async throws {
         // call weather api using saved cooridinates
         let response = try await weatherService.fetchWeather(
@@ -170,7 +170,7 @@ final class MainAppViewModel: ObservableObject {
         self.currentWeather = response.current
         self.forecast = response.daily
         
-
+        
         // fetch pois if they are not alreadt loaded
         if pois.isEmpty {
             self.pois = try await locationManager.findPOIs(
@@ -188,7 +188,7 @@ final class MainAppViewModel: ObservableObject {
         ))
     }
     
- 
+    
     
     //delete place from saved places when user swipes
     func delete(place: Place) {
@@ -200,10 +200,10 @@ final class MainAppViewModel: ObservableObject {
         // Attempts to save the context.
     }
     
-   
     
-    }
+    
+}
 
-    
+
 
 
